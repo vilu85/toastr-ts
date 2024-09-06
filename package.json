@@ -1,0 +1,41 @@
+{
+  "name": "toastr-ts",
+  "version": "1.0.0",
+  "description": "TypeScript implementation of Toastr JavaScript library",
+  "main": "index.ts",
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack --watch",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vilu85/toastr-ts.git"
+  },
+  "author": "Ville Perkkio",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vilu85/toastr-ts/issues"
+  },
+  "homepage": "https://github.com/vilu85/toastr-ts#readme",
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/runtime": "^7.25.6",
+    "@types/node": "^22.5.4",
+    "@typescript-eslint/eslint-plugin": "^8.4.0",
+    "@typescript-eslint/parser": "^8.4.0",
+    "css-loader": "^7.1.2",
+    "css-minimizer-webpack-plugin": "^7.0.0",
+    "eslint": "^8.57.0",
+    "mini-css-extract-plugin": "^2.9.1",
+    "postcss-loader": "^8.1.1",
+    "sass": "^1.78.0",
+    "sass-loader": "^16.0.1",
+    "terser-webpack-plugin": "^5.3.10",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.5.4",
+    "url-loader": "^4.1.1",
+    "webpack": "^5.94.0",
+    "webpack-cli": "^5.1.4"
+  }
+}
