@@ -3,7 +3,7 @@ type ToastType = 'error' | 'info' | 'success' | 'warning';
 interface ToastOptions {
     closeButton?: boolean;
     tapToDismiss?: boolean;
-    toastClass?: string;
+    toastClass?: string | string[];
     containerId?: string;
     debug?: boolean;
     showMethod?: 'fadeIn' | 'slideDown' | 'show';
@@ -46,7 +46,7 @@ interface ToastMap {
     title?: string;
 }
 
-interface ToastResponse {
+export interface ToastResponse {
     toastId: number;
     state: 'visible' | 'hidden';
     startTime: Date;
@@ -56,10 +56,11 @@ interface ToastResponse {
 }
 
 class Toastr {
-    private $container: HTMLElement | null = null;
+    public $container!: HTMLElement;
     private listener: ((response: ToastResponse) => void) | null = null;
     private toastId = 0;
     private previousToast?: string;
+    private toasts: { [id: number]: HTMLElement } = {};
 
     public options: ToastOptions = {};
     public version = '3.0.0';
@@ -70,6 +71,14 @@ class Toastr {
         success: 'success',
         warning: 'warning',
     };
+
+    constructor(options: Partial<ToastOptions> = {}) {
+        const defaultOptions = this.getDefaults();
+        this.options = {
+            ...defaultOptions,
+            ...options,
+        }
+    }
 
     public error(message: string, title?: string, optionsOverride?: Partial<ToastOptions>): HTMLElement | null {
         return this.notify({
@@ -111,12 +120,13 @@ class Toastr {
         });
     }
 
-    public clear(toastElement: HTMLElement, clearOptions?: { force?: boolean }): void {
+    public clear(toastElement?: HTMLElement, clearOptions?: { force?: boolean }): void {
+        const _toastElement = toastElement ?? this.toasts?.[this.toastId];
         const options = this.getOptions();
         if (!this.$container) {
             this.getContainer(options);
         }
-        if (!this.clearToast(toastElement, options, clearOptions)) {
+        if (!this.clearToast(_toastElement, options, clearOptions)) {
             this.clearContainer(options);
         }
     }
@@ -139,11 +149,17 @@ class Toastr {
         this.listener = callback;
     }
 
-    private getContainer(options?: ToastOptions, create: boolean = false): HTMLElement | null {
+    public getContainer(options?: ToastOptions, create: boolean = false): HTMLElement {
         if (!options) {
             options = this.getOptions();
         }
-        this.$container = document.getElementById(options.containerId!);
+        if(!this.$container) {
+            const oldContainer = document.getElementById(options.containerId!);
+            if(oldContainer) {
+                this.$container = oldContainer;
+                return oldContainer;
+            }
+        }
         if (this.$container) {
             return this.$container;
         }
@@ -201,13 +217,14 @@ class Toastr {
         };
 
         this.personalizeToast($toastElement, $titleElement, $messageElement, $progressElement, $closeElement, map, options);
-        intervalId = this.displayToast($toastElement, options, intervalId, progressBar);
+        intervalId = this.displayToast($toastElement, options, intervalId, progressBar, options.onShown);
         this.handleEvents($toastElement, $closeElement, options, progressBar, intervalId);
         this.publish(response);
 
         if (options.debug && console) {
             console.log(response);
         }
+        this.toasts[this.toastId] = $toastElement;
 
         return $toastElement;
     }
@@ -222,7 +239,11 @@ class Toastr {
         options: ToastOptions
     ): void {
         if (map.iconClass) {
-            $toastElement.classList.add(options.toastClass!, map.iconClass);
+            if(typeof options.toastClass === 'string') {
+                $toastElement.classList.add(options.toastClass!, map.iconClass);
+            } else if(Array.isArray(options.toastClass)) {
+                options.toastClass.forEach( (value) => $toastElement.classList.add(value) );
+            }
         }
         if (map.title) {
             $titleElement.className = options.titleClass!;
@@ -278,10 +299,15 @@ class Toastr {
         $toastElement: HTMLElement,
         options: ToastOptions,
         intervalId: number | null,
-        progressBar: { intervalId: number; hideEta: number; maxHideTime: number }
+        progressBar: {
+            intervalId: number;
+            hideEta: number;
+            maxHideTime: number;
+        },
+        onShown?: () => void
     ): number | null {
         $toastElement.style.display = 'none';
-        this.showElement($toastElement, options.showMethod!, options.showDuration!, options.showEasing!);
+        this.showElement($toastElement, options.showMethod!, options.showDuration!, options.showEasing!, onShown);
 
         if (options.timeOut! > 0) {
             intervalId = window.setTimeout(() => this.hideToast($toastElement, options, progressBar, intervalId!), options.timeOut!);
@@ -299,20 +325,22 @@ class Toastr {
         element: HTMLElement,
         method: 'fadeIn' | 'slideDown' | 'show',
         duration: number,
-        easing: 'swing' | 'linear'
+        easing: 'swing' | 'linear',
+        onShown?: () => void,
     ): void {
         if (method === 'fadeIn') {
             element.style.transition = `opacity ${duration}ms ${easing}`;
             element.style.opacity = '0';
             element.style.display = 'block';
-            requestAnimationFrame(() => (element.style.opacity = '1'));
+            requestAnimationFrame(() => {element.style.opacity = '1'; onShown?.();});
         } else if (method === 'slideDown') {
             element.style.transition = `max-height ${duration}ms ${easing}`;
             element.style.maxHeight = '0';
             element.style.display = 'block';
-            requestAnimationFrame(() => (element.style.maxHeight = `${element.scrollHeight}px`));
+            requestAnimationFrame(() => {element.style.maxHeight = `${element.scrollHeight}px`; onShown?.();});
         } else {
             element.style.display = 'block';
+            onShown?.();
         }
     }
 
@@ -324,7 +352,7 @@ class Toastr {
     ): void {
         this.hideElement($toastElement, options.hideMethod!, options.hideDuration!, options.hideEasing!, () => {
             this.removeToast($toastElement);
-            if (options.onHidden) {
+            if (options?.onHidden) {
                 options.onHidden();
             }
             if(intervalId) {
@@ -441,6 +469,9 @@ class Toastr {
                 this.previousToast = undefined;
             }
         }
+        if(this.toasts?.[this.toastId]) {
+            delete this.toasts[this.toastId];
+        }
     }
 
     private getOptions(): ToastOptions {
@@ -460,8 +491,8 @@ class Toastr {
     private getDefaults(): ToastOptions {
         return {
             tapToDismiss: true,
-            toastClass: 'toastr',
-            containerId: 'toastr-container',
+            toastClass: 'toast',
+            containerId: 'toast-container',
             debug: false,
             showMethod: 'fadeIn',
             showDuration: 300,
@@ -477,24 +508,24 @@ class Toastr {
             closeOnHover: true,
             extendedTimeOut: 1000,
             iconClasses: {
-                error: "toastr-error",
-                info: "toastr-info",
-                success: "toastr-success",
-                warning: "toastr-warning",
+                error: "toast-error",
+                info: "toast-info",
+                success: "toast-success",
+                warning: "toast-warning",
             },
-            iconClass: 'toastr-info',
-            positionClass: 'toastr-top-right',
+            iconClass: 'toast-info',
+            positionClass: 'toast-top-right',
             timeOut: 5000,
-            titleClass: 'toastr-title',
-            messageClass: 'toastr-message',
+            titleClass: 'toast-title',
+            messageClass: 'toast-message',
             escapeHtml: false,
             target: 'body',
             closeHtml: this.createCloseBtn(),
-            closeClass: 'toastr-close-button',
+            closeClass: 'toast-close-button',
             newestOnTop: true,
             preventDuplicates: false,
             progressBar: false,
-            progressClass: 'toastr-progress',
+            progressClass: 'toast-progress',
             rtl: false,
         };
     }
@@ -555,11 +586,10 @@ const publicToastrAPI = {
     version: toastrInstance.version
 };
 export type ToastrAPI = typeof publicToastrAPI;
+export default Toastr;
 
 // Expose Toastr to the global window object or module.exports for Node.js
-// if (typeof module !== 'undefined' && module.exports) {
-//     module.exports = toastr;
-// } else {
-window.toastr = publicToastrAPI;
-// }
+if (typeof window !== 'undefined') {
+    window.toastr = publicToastrAPI;
+}
 
