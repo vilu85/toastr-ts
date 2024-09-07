@@ -50,52 +50,57 @@ describe('Toastr', () => {
     beforeEach(() => {
       document.body.innerHTML = '<div id="my-div"></div>';
       toastr.options.containerId = 'my-div';
+      toastr.options.hideDuration = 1;
+      toastr.options.showDuration = 1;
     });
 
-    it('should clear toast and container', () => {
+    it('should clear toast and container', async () => {
       const myToast = toastr.success('') as HTMLElement;
-
       toastr.clear(myToast);
-
+      await new Promise(res => setTimeout(res, 2));
       expect(toastr.$container.innerHTML).toBe('');
     });
 
-    it('should clear toast and container but leave one toast', () => {
+    it('should clear toast and container but leave one toast', async () => {
       const myToast = toastr.success('First Message') as HTMLElement;
       const secondToast = toastr.success('Second Message') as HTMLElement;
       const thirdToast = toastr.success('Third Message') as HTMLElement;
 
       toastr.clear(myToast);
+      await new Promise(res => setTimeout(res, 2));
 
       expect(toastr.$container.innerHTML).not.toContain((myToast as HTMLDivElement).innerHTML);
       expect(toastr.$container.innerHTML).toContain((secondToast as HTMLDivElement).innerHTML);
       expect(toastr.$container.innerHTML).toContain((thirdToast as HTMLDivElement).innerHTML);
 
       toastr.clear(secondToast);
+      await new Promise(res => setTimeout(res, 2));
 
       expect(toastr.$container.innerHTML).not.toContain((myToast as HTMLDivElement).innerHTML);
       expect(toastr.$container.innerHTML).not.toContain((secondToast as HTMLDivElement).innerHTML);
       expect(toastr.$container.innerHTML).toContain((thirdToast as HTMLDivElement).innerHTML);
 
       toastr.clear(thirdToast);
+      await new Promise(res => setTimeout(res, 2));
 
       expect(toastr.$container.innerHTML).toBe('');
     });
 
-    it('should clear all toasts when empty', () => {
+    it('should clear all toasts when empty', async () => {
       toastr.success('');
       toastr.clear();
       toastr.success('');
       toastr.clear();
       toastr.success('');
       toastr.clear();
-
+      await new Promise(res => setTimeout(res, 2));
       expect(toastr.$container.innerHTML).toBe('');
     });
 
-    it('should clear container', () => {
+    it('should clear container', async () => {
       toastr.success('');
       toastr.clear();
+      await new Promise(res => setTimeout(res, 2));
       expect(toastr.$container.innerHTML).toBe('');
     });
 
@@ -234,11 +239,10 @@ describe('Toastr', () => {
       expect(toast?.querySelector<HTMLButtonElement>('button[type="button"].toast-close-button')).toBeDefined();
     });
 
-    // todo: should work after transitions has been added
     it.skip('close button duration', async () => {
       toastr.options.closeButton = true;
       toastr.options.closeDuration = 0;
-      toastr.options.hideDuration = 2000;
+      toastr.options.hideDuration = 1;
 
       const toast = toastr.success('') as HTMLElement;
 
@@ -246,7 +250,7 @@ describe('Toastr', () => {
 
       expect(toastr.$container.children).toHaveLength(1);
 
-      await new Promise(res => setTimeout(res, 500));
+      await new Promise(res => setTimeout(res, 2));
 
       expect(toastr.$container.children).toHaveLength(0);
     });
@@ -392,8 +396,9 @@ describe('Toastr', () => {
   describe('event', () => {
     beforeEach(() => {
       toastr.options.closeButton = false;
-      toastr.options.hideDuration = 0;
+      toastr.options.hideDuration = 1;
       toastr.options.timeOut = 1;
+      toastr.options.closeDuration = 1;
     });
 
     it('onShown is Executed', async () => {

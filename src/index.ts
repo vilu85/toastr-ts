@@ -121,12 +121,11 @@ class Toastr {
     }
 
     public clear(toastElement?: HTMLElement, clearOptions?: { force?: boolean }): void {
-        const _toastElement = toastElement ?? this.toasts?.[this.toastId];
         const options = this.getOptions();
         if (!this.$container) {
             this.getContainer(options);
         }
-        if (!this.clearToast(_toastElement, options, clearOptions)) {
+        if (!this.clearToast(toastElement, options, clearOptions)) {
             this.clearContainer(options);
         }
     }
@@ -350,7 +349,7 @@ class Toastr {
         progressBar: { intervalId: number; hideEta: number; maxHideTime: number },
         intervalId: number | null,
     ): void {
-        this.hideElement($toastElement, options.hideMethod!, options.hideDuration!, options.hideEasing!, () => {
+        this.hideElement($toastElement, () => {
             this.removeToast($toastElement);
             if (options?.onHidden) {
                 options.onHidden();
@@ -364,16 +363,16 @@ class Toastr {
             // response.state = 'hidden';
             // response.endTime = new Date();
             // publish(response);
-        });
+        }, options.hideMethod, options.hideDuration, options.hideEasing);
         clearTimeout(progressBar.intervalId);
     }
 
     private hideElement(
         element: HTMLElement,
-        method: 'fadeOut',
-        duration: number,
-        easing: 'swing' | 'linear',
         onComplete: () => void,
+        method?: 'fadeOut',
+        duration?: number,
+        easing?: 'swing' | 'linear',
     ): void {
         if (method === 'fadeOut') {
             element.style.transition = `opacity ${duration}ms ${easing}`;
@@ -442,10 +441,10 @@ class Toastr {
         return false;
     }
 
-    private clearToast(toastElement: HTMLElement | null, options: ToastOptions, clearOptions?: { force?: boolean }): boolean {
+    private clearToast(toastElement?: HTMLElement | null, options?: ToastOptions, clearOptions?: { force?: boolean }): boolean {
         const force = clearOptions?.force || false;
         if (toastElement && (force || !toastElement.matches(':focus'))) {
-            this.hideElement(toastElement, options.hideMethod!, options.hideDuration!, options.hideEasing!, () => { this.removeToast(toastElement); });
+            this.hideElement(toastElement, () => { this.removeToast(toastElement); }, options?.hideMethod, options?.hideDuration, options?.hideEasing);
             return true;
         }
         return false;
