@@ -1,4 +1,5 @@
 import { ToastMap, ToastOptions, ToastResponse, ToastType } from './types';
+import './index.scss';
 
 class Toastr {
 	public container!: HTMLElement;

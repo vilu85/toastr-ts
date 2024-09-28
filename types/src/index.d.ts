@@ -1,4 +1,5 @@
 import { ToastOptions, ToastResponse } from './types';
+import './index.scss';
 declare class Toastr {
     container: HTMLElement;
     private listener;
