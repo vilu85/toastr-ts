@@ -1,5 +1,7 @@
+import { ToastrAPI } from './src';
+
 declare global {
-    interface Window { toastr: Toastr; }
+    interface Window { toastr: ToastrAPI; }
 }
 
 export {};

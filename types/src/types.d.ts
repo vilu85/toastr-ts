@@ -1,8 +1,8 @@
-type ToastType = 'error' | 'info' | 'success' | 'warning';
-interface ToastOptions {
+export type ToastType = 'error' | 'info' | 'success' | 'warning';
+export interface ToastOptions {
     closeButton?: boolean;
     tapToDismiss?: boolean;
-    toastClass?: string;
+    toastClass?: string | string[];
     containerId?: string;
     debug?: boolean;
     showMethod?: 'fadeIn' | 'slideDown' | 'show';
@@ -36,14 +36,14 @@ interface ToastOptions {
     onCloseClick?: (event: Event) => void;
     onclick?: (event: Event) => void;
 }
-interface ToastMap {
+export interface ToastMap {
     type: ToastType;
     iconClass?: string;
     message?: string;
     optionsOverride?: Partial<ToastOptions>;
     title?: string;
 }
-interface ToastResponse {
+export interface ToastResponse {
     toastId: number;
     state: 'visible' | 'hidden';
     startTime: Date;
@@ -51,17 +51,3 @@ interface ToastResponse {
     options: ToastOptions;
     map: ToastMap;
 }
-declare const publicToastrAPI: {
-    error: (message: string, title?: string, optionsOverride?: Partial<ToastOptions>) => HTMLElement | null;
-    info: (message: string, title?: string, optionsOverride?: Partial<ToastOptions>) => HTMLElement | null;
-    success: (message: string, title?: string, optionsOverride?: Partial<ToastOptions>) => HTMLElement | null;
-    warning: (message: string, title?: string, optionsOverride?: Partial<ToastOptions>) => HTMLElement | null;
-    clear: (toastElement: HTMLElement, clearOptions?: {
-        force?: boolean;
-    }) => void;
-    remove: (toastElement?: HTMLElement | null) => void;
-    subscribe: (callback: (response: ToastResponse) => void) => void;
-    version: string;
-};
-export type ToastrAPI = typeof publicToastrAPI;
-export {};
