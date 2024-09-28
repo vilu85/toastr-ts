@@ -4,9 +4,9 @@ import tseslint from 'typescript-eslint';
 import typescriptEslintParser from '@typescript-eslint/parser';
 
 export default tseslint.config(
-	{ ignores: ['**/.vscode/*', '**/node_modules/*', '**/dist/*'] },
+	{ ignores: ['**/.vscode/*', '**/node_modules/*', '**/dist/*', '**/*.d.ts'] },
 	{
-		files: ['**/*.ts', '*.mjs'],
+		files: ['**/*.ts'],
 		extends: [
 			pluginJs.configs.recommended,
 			...tseslint.configs.recommended,
