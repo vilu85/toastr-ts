@@ -240,7 +240,7 @@ describe('Toastr', () => {
 			expect(toast?.querySelector<HTMLButtonElement>('button[type="button"].toast-close-button')).toBeDefined();
 		});
 
-		it.skip('close button duration', async () => {
+		it('close button duration', async () => {
 			toastr.options.closeButton = true;
 			toastr.options.closeDuration = 0;
 			toastr.options.hideDuration = 1;
