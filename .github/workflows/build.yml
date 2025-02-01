@@ -1,0 +1,53 @@
+name: Build release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  
+permissions:
+  contents: write
+  deployments: write
+  actions: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v4
+        - name: Get version number
+          id: get-version-number
+          run: |
+           package_json_file="./package.json"
+           package_version=$(grep -oP '"version":\s*"\K[0-9]+\.[0-9]+\.[0-9]+' "$package_json_file")
+           echo "Package version: $package_version"
+           echo "VERSION=$package_version" >> "$GITHUB_OUTPUT"
+           echo "UNDERSCORE_VERSION=${package_version//./_}" >> "$GITHUB_OUTPUT"
+
+        - uses: actions/setup-node@v4
+          with:
+            node-version: 22
+            cache: 'npm'
+
+        - run: npm install
+    
+        - name: Lint
+          run: npm run lint
+        
+        - name: Test
+          run: npm run test
+        
+        - name: Build
+          run: npm run build:production
+
+        - name: Create Release
+          id: create_release
+          uses: softprops/action-gh-release@v2
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            VERSION: ${{ steps.get-version-number.outputs.VERSION }}
+            UNDERSCORE_VERSION: ${{ steps.get-version-number.outputs.UNDERSCORE_VERSION }}
+          with:
+            tag_name: v${{ env.VERSION }}
+            files: ./dist/toastr-${{ env.UNDERSCORE_VERSION }}.zip
+            make_latest: true
