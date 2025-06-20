@@ -23,7 +23,6 @@ describe('Toastr', () => {
 	});
 
 	it('should create a container when creating an instance', () => {
-
 		new Toastr();
 
 		expect(document.getElementById('toast-container')).toBeDefined();
@@ -58,7 +57,7 @@ describe('Toastr', () => {
 		it('should clear toast and container', async () => {
 			const myToast = toastr.success('') as HTMLElement;
 			toastr.clear(myToast);
-			await new Promise(res => setTimeout(res, 2));
+			await new Promise((res) => setTimeout(res, 2));
 			expect(toastr.container.innerHTML).toBe('');
 		});
 
@@ -68,21 +67,21 @@ describe('Toastr', () => {
 			const thirdToast = toastr.success('Third Message') as HTMLElement;
 
 			toastr.clear(myToast);
-			await new Promise(res => setTimeout(res, 2));
+			await new Promise((res) => setTimeout(res, 2));
 
 			expect(toastr.container.innerHTML).not.toContain((myToast as HTMLDivElement).innerHTML);
 			expect(toastr.container.innerHTML).toContain((secondToast as HTMLDivElement).innerHTML);
 			expect(toastr.container.innerHTML).toContain((thirdToast as HTMLDivElement).innerHTML);
 
 			toastr.clear(secondToast);
-			await new Promise(res => setTimeout(res, 2));
+			await new Promise((res) => setTimeout(res, 2));
 
 			expect(toastr.container.innerHTML).not.toContain((myToast as HTMLDivElement).innerHTML);
 			expect(toastr.container.innerHTML).not.toContain((secondToast as HTMLDivElement).innerHTML);
 			expect(toastr.container.innerHTML).toContain((thirdToast as HTMLDivElement).innerHTML);
 
 			toastr.clear(thirdToast);
-			await new Promise(res => setTimeout(res, 2));
+			await new Promise((res) => setTimeout(res, 2));
 
 			expect(toastr.container.innerHTML).toBe('');
 		});
@@ -94,14 +93,14 @@ describe('Toastr', () => {
 			toastr.clear();
 			toastr.success('');
 			toastr.clear();
-			await new Promise(res => setTimeout(res, 2));
+			await new Promise((res) => setTimeout(res, 2));
 			expect(toastr.container.innerHTML).toBe('');
 		});
 
 		it('should clear container', async () => {
 			toastr.success('');
 			toastr.clear();
-			await new Promise(res => setTimeout(res, 2));
+			await new Promise((res) => setTimeout(res, 2));
 			expect(toastr.container.innerHTML).toBe('');
 		});
 
@@ -160,12 +159,7 @@ describe('Toastr', () => {
 		});
 	});
 
-	([
-		'info',
-		'warning',
-		'error',
-		'success',
-	] as Notifiers[]).forEach((item) => {
+	(['info', 'warning', 'error', 'success'] as Notifiers[]).forEach((item) => {
 		describe(item, () => {
 			it('pass title and message', () => {
 				const toast = toastr[item](sampleMsg, sampleTitle);
@@ -198,12 +192,7 @@ describe('Toastr', () => {
 			document.body.innerHTML = '';
 		});
 
-		([
-			'info',
-			'warning',
-			'error',
-			'success',
-		] as Notifiers[]).forEach((item) => {
+		(['info', 'warning', 'error', 'success'] as Notifiers[]).forEach((item) => {
 			it(`escape html - ${item}`, () => {
 				toastr.options.escapeHtml = true;
 
@@ -251,7 +240,7 @@ describe('Toastr', () => {
 
 			expect(toastr.container.children).toHaveLength(1);
 
-			await new Promise(res => setTimeout(res, 2));
+			await new Promise((res) => setTimeout(res, 2));
 
 			expect(toastr.container.children).toHaveLength(0);
 		});
@@ -322,7 +311,7 @@ describe('Toastr', () => {
 		});
 
 		it('toastr error has aria assertive', () => {
-			const toastrSuccess = toastr.error('')as HTMLElement;
+			const toastrSuccess = toastr.error('') as HTMLElement;
 
 			expect(toastrSuccess.getAttribute('aria-live')).toBe('assertive');
 		});
@@ -336,7 +325,6 @@ describe('Toastr', () => {
 
 	describe('debug', () => {
 		beforeEach(() => {
-
 			console.log = jest.fn();
 		});
 
@@ -345,15 +333,13 @@ describe('Toastr', () => {
 
 			toastr.success('');
 
-
-			expect(console.log).not.toBeCalled();
+			expect(console.log).not.toHaveBeenCalled();
 
 			toastr.success('');
 			toastr.success('');
 			toastr.success('');
 
-
-			expect(console.log).not.toBeCalled();
+			expect(console.log).not.toHaveBeenCalled();
 		});
 
 		it('should call debug', () => {
@@ -361,15 +347,13 @@ describe('Toastr', () => {
 
 			toastr.success('');
 
-
-			expect(console.log).toBeCalled();
+			expect(console.log).toHaveBeenCalled();
 
 			toastr.success('');
 			toastr.success('');
 			toastr.success('');
 
-
-			expect(console.log).toBeCalledTimes(4);
+			expect(console.log).toHaveBeenCalledTimes(4);
 		});
 
 		it('should mix debug', () => {
@@ -377,8 +361,7 @@ describe('Toastr', () => {
 
 			toastr.success('');
 
-
-			expect(console.log).toBeCalled();
+			expect(console.log).toHaveBeenCalled();
 
 			toastr.options.debug = false;
 
@@ -389,8 +372,7 @@ describe('Toastr', () => {
 
 			toastr.success('');
 
-
-			expect(console.log).toBeCalledTimes(2);
+			expect(console.log).toHaveBeenCalledTimes(2);
 		});
 	});
 
@@ -405,7 +387,7 @@ describe('Toastr', () => {
 		it('onShown is Executed', async () => {
 			toastr.options.onShown = jest.fn();
 			toastr.success('');
-			await new Promise(res => setTimeout(res, 10));
+			await new Promise((res) => setTimeout(res, 10));
 
 			expect(toastr.options.onShown).toHaveBeenCalledTimes(1);
 		});
@@ -415,7 +397,7 @@ describe('Toastr', () => {
 			toastr.success('');
 
 			// setTimeout is not precise enough, but 0.002s should work.
-			await new Promise(res => setTimeout(res, 20));
+			await new Promise((res) => setTimeout(res, 20));
 
 			expect(toastr.options.onHidden).toHaveBeenCalledTimes(1);
 		});
@@ -426,7 +408,7 @@ describe('Toastr', () => {
 			toastr.success('');
 
 			// setTimeout is not precise enough, but 0.002s should work.
-			await new Promise(res => setTimeout(res, 20));
+			await new Promise((res) => setTimeout(res, 20));
 			expect(toastr.options.onShown).toHaveBeenCalledTimes(1);
 			expect(toastr.options.onHidden).toHaveBeenCalledTimes(1);
 		});
@@ -439,9 +421,9 @@ describe('Toastr', () => {
 
 			const $toastrSuccess = toastr.success(defaults.sampleMsg, defaults.sampleTitle) as HTMLElement;
 
-      $toastrSuccess.querySelector<HTMLButtonElement>('button.toast-close-button')!.click();
+			$toastrSuccess.querySelector<HTMLButtonElement>('button.toast-close-button')!.click();
 
-      expect(toastr.options.onCloseClick).toHaveBeenCalledTimes(1);
+			expect(toastr.options.onCloseClick).toHaveBeenCalledTimes(1);
 		});
 
 		it('message appears when no show or hide method functions provided', () => {
