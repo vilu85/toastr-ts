@@ -146,8 +146,8 @@ describe('Toastr', () => {
 			expect(toastr.container.innerHTML).toContain((secondToast as HTMLElement).innerHTML);
 		});
 
-		// currently there is no way to focus the toast
-		it.skip('should not remove an active toast', () => {
+		// @FIXME: currently there is no way to focus the toast
+		it('should not remove an active toast', () => {
 			const myToast = toastr.success('My message');
 			const secondToast = toastr.success('My second message');
 
@@ -160,13 +160,13 @@ describe('Toastr', () => {
 	});
 
 	(['info', 'warning', 'error', 'success'] as Notifiers[]).forEach((item) => {
-		describe(item, () => {
+		describe(`${item}`, () => {
 			it('pass title and message', () => {
 				const toast = toastr[item](sampleMsg, sampleTitle);
 
 				expect(toast?.querySelector('div.toast-title')?.innerHTML).toBe(sampleTitle);
 				expect(toast?.querySelector('div.toast-message')?.innerHTML).toBe(sampleMsg);
-				expect(toast?.classList.contains(defaults.iconClasses[item]));
+				expect(toast?.classList).toContain(defaults.iconClasses[item]);
 			});
 
 			it('pass message, but no title', () => {
@@ -174,7 +174,7 @@ describe('Toastr', () => {
 
 				expect(toast?.querySelector('div.toast-title')).toBeNull();
 				expect(toast?.querySelector('div.toast-message')?.innerHTML).toBe(sampleMsg);
-				expect(toast?.classList?.contains(defaults.iconClasses[item]));
+				expect(toast?.classList).toContain(defaults.iconClasses[item]);
 			});
 
 			it('pass no message nor title', () => {
@@ -182,7 +182,7 @@ describe('Toastr', () => {
 
 				expect(toast?.querySelector('div.toast-title')).toBeNull();
 				expect(toast?.querySelector('div.toast-message')?.innerHTML).toBeFalsy();
-				expect(toast?.classList.contains(defaults.iconClasses[item]));
+				expect(toast?.classList).toContain(defaults.iconClasses[item]);
 			});
 		});
 	});
@@ -269,7 +269,7 @@ describe('Toastr', () => {
 			toastr.options.rtl = true;
 		});
 
-		it('toastr is ltr by default', (done) => {
+		it('toastr is ltr by default', () => new Promise<void>(done => {
 			const thisToastr = new Toastr();
 
 			expect.assertions(1);
@@ -281,7 +281,7 @@ describe('Toastr', () => {
 			});
 
 			thisToastr.success('');
-		});
+		}));
 
 		it('ltr toastr does not have .rtl class', () => {
 			const thisToastr = new Toastr();

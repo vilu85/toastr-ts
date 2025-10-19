@@ -144,9 +144,9 @@ class Toastr {
 		if (!options) {
 			options = this.getOptions();
 		}
-		if(!this.container) {
+		if (!this.container) {
 			const oldContainer = document.getElementById(options.containerId!);
-			if(oldContainer) {
+			if (oldContainer) {
 				this.container = oldContainer;
 				return oldContainer;
 			}
@@ -230,10 +230,10 @@ class Toastr {
 		options: ToastOptions
 	): void {
 		if (map.iconClass) {
-			if(typeof options.toastClass === 'string') {
-                options.toastClass!.split(' ').forEach((className) => toastElement.classList.add(className));
-			} else if(Array.isArray(options.toastClass)) {
-				options.toastClass.forEach( (value) => toastElement.classList.add(value) );
+			if (typeof options.toastClass === 'string') {
+				options.toastClass!.split(' ').forEach((className) => toastElement.classList.add(className));
+			} else if (Array.isArray(options.toastClass)) {
+				options.toastClass.forEach((value) => toastElement.classList.add(value));
 			}
 
 			toastElement.classList.add(map.iconClass);
@@ -269,23 +269,18 @@ class Toastr {
 
 		let ariaValue = '';
 		switch (map.iconClass) {
-		case 'toast-success':
-		case 'toast-info':
-			ariaValue =  'polite';
-			break;
-		default:
-			ariaValue = 'assertive';
+			case 'toast-success':
+			case 'toast-info':
+				ariaValue = 'polite';
+				break;
+			default:
+				ariaValue = 'assertive';
 		}
 		toastElement.setAttribute('aria-live', ariaValue);
 	}
 
 	private escapeHtml(source: string): string {
-		return source
-			.replace(/&/g, '&amp;')
-			.replace(/"/g, '&quot;')
-			.replace(/'/g, '&#39;')
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;');
+		return source.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 	}
 
 	private displayToast(
@@ -293,10 +288,10 @@ class Toastr {
 		options: ToastOptions,
 		intervalId: number | null,
 		progressBar: {
-            intervalId: number;
-            hideEta: number;
-            maxHideTime: number;
-        },
+			intervalId: number;
+			hideEta: number;
+			maxHideTime: number;
+		},
 		onShown?: () => void
 	): number | null {
 		toastElement.style.display = 'none';
@@ -319,18 +314,24 @@ class Toastr {
 		method: 'fadeIn' | 'slideDown' | 'show',
 		duration: number,
 		easing: 'swing' | 'linear',
-		onShown?: () => void,
+		onShown?: () => void
 	): void {
 		if (method === 'fadeIn') {
 			element.style.transition = `opacity ${duration}ms ${easing}`;
 			element.style.opacity = '0';
 			element.style.display = 'block';
-			requestAnimationFrame(() => {element.style.opacity = '1'; onShown?.();});
+			requestAnimationFrame(() => {
+				element.style.opacity = '1';
+				onShown?.();
+			});
 		} else if (method === 'slideDown') {
 			element.style.transition = `max-height ${duration}ms ${easing}`;
 			element.style.maxHeight = '0';
 			element.style.display = 'block';
-			requestAnimationFrame(() => {element.style.maxHeight = `${element.scrollHeight}px`; onShown?.();});
+			requestAnimationFrame(() => {
+				element.style.maxHeight = `${element.scrollHeight}px`;
+				onShown?.();
+			});
 		} else {
 			element.style.display = 'block';
 			onShown?.();
@@ -341,23 +342,29 @@ class Toastr {
 		toastElement: HTMLElement,
 		options: ToastOptions,
 		progressBar: { intervalId: number; hideEta: number; maxHideTime: number },
-		intervalId: number | null,
+		intervalId: number | null
 	): void {
-		this.hideElement(toastElement, () => {
-			this.removeToast(toastElement);
-			if (options?.onHidden) {
-				options.onHidden();
-			}
-			if(intervalId) {
-				clearTimeout(intervalId);
-			}
-			// if (options.onHidden && response.state !== 'hidden') {
-			//     options.onHidden();
-			// }
-			// response.state = 'hidden';
-			// response.endTime = new Date();
-			// publish(response);
-		}, options.hideMethod, options.hideDuration, options.hideEasing);
+		this.hideElement(
+			toastElement,
+			() => {
+				this.removeToast(toastElement);
+				if (options?.onHidden) {
+					options.onHidden();
+				}
+				if (intervalId) {
+					clearTimeout(intervalId);
+				}
+				// if (options.onHidden && response.state !== 'hidden') {
+				//     options.onHidden();
+				// }
+				// response.state = 'hidden';
+				// response.endTime = new Date();
+				// publish(response);
+			},
+			options.hideMethod,
+			options.hideDuration,
+			options.hideEasing
+		);
 		clearTimeout(progressBar.intervalId);
 	}
 
@@ -366,13 +373,16 @@ class Toastr {
 		onComplete: () => void,
 		method?: 'fadeOut',
 		duration?: number,
-		easing?: 'swing' | 'linear',
+		easing?: 'swing' | 'linear'
 	): void {
 		if (method === 'fadeOut') {
 			element.style.transition = `opacity ${duration}ms ${easing}`;
 			element.style.opacity = '1';
 			requestAnimationFrame(() => (element.style.opacity = '0'));
-			setTimeout(() => {element.style.display = 'none'; onComplete();}, duration);
+			setTimeout(() => {
+				element.style.display = 'none';
+				onComplete();
+			}, duration);
 		} else {
 			element.style.display = 'none';
 			onComplete();
@@ -384,7 +394,7 @@ class Toastr {
 		closeElement: HTMLElement,
 		options: ToastOptions,
 		progressBar: { intervalId: number; hideEta: number; maxHideTime: number },
-		intervalId: number | null,
+		intervalId: number | null
 	): void {
 		if (options.closeOnHover) {
 			toastElement.addEventListener('mouseover', () => this.stickAround(progressBar, intervalId));
@@ -397,9 +407,9 @@ class Toastr {
 
 		if (options.closeButton && closeElement) {
 			closeElement.addEventListener('click', (event) => {
-				if(event?.stopPropagation) {
+				if (event?.stopPropagation) {
 					event.stopPropagation();
-				} else if(event?.cancelBubble) {
+				} else if (event?.cancelBubble) {
 					event.cancelBubble = true;
 				}
 
@@ -413,8 +423,8 @@ class Toastr {
 
 		if (options.onclick) {
 			toastElement.addEventListener('click', (event) => {
-                options.onclick!(event);
-                this.hideToast(toastElement, options, progressBar, intervalId);
+				options.onclick!(event);
+				this.hideToast(toastElement, options, progressBar, intervalId);
 			});
 		}
 	}
@@ -438,7 +448,15 @@ class Toastr {
 	private clearToast(toastElement?: HTMLElement | null, options?: ToastOptions, clearOptions?: { force?: boolean }): boolean {
 		const force = clearOptions?.force || false;
 		if (toastElement && (force || !toastElement.matches(':focus'))) {
-			this.hideElement(toastElement, () => { this.removeToast(toastElement); }, options?.hideMethod, options?.hideDuration, options?.hideEasing);
+			this.hideElement(
+				toastElement,
+				() => {
+					this.removeToast(toastElement);
+				},
+				options?.hideMethod,
+				options?.hideDuration,
+				options?.hideEasing
+			);
 			return true;
 		}
 		return false;
@@ -458,11 +476,11 @@ class Toastr {
 		if (!this.isVisible(toastElement)) {
 			toastElement.remove();
 			if (!this.container?.children.length) {
-                this.container!.remove();
-                this.previousToast = undefined;
+				this.container!.remove();
+				this.previousToast = undefined;
 			}
 		}
-		if(this.toasts?.[this.toastId]) {
+		if (this.toasts?.[this.toastId]) {
 			delete this.toasts[this.toastId];
 		}
 	}
@@ -530,7 +548,7 @@ class Toastr {
 	}
 
 	private stickAround(progressBar: { hideEta: number }, intervalId: number | null): void {
-		if(intervalId) {
+		if (intervalId) {
 			clearTimeout(intervalId);
 		}
 		progressBar.hideEta = 0;
@@ -539,7 +557,7 @@ class Toastr {
 	private delayedHideToast(
 		$toastElement: HTMLElement,
 		options: ToastOptions,
-		progressBar: { hideEta: number; maxHideTime: number, intervalId: number },
+		progressBar: { hideEta: number; maxHideTime: number; intervalId: number },
 		intervalId: number | null
 	): void {
 		if (options.timeOut! > 0 || options.extendedTimeOut! > 0) {
@@ -552,10 +570,12 @@ class Toastr {
 	private isVisible(elem?: HTMLElement) {
 		if (elem) {
 			if (typeof window?.getComputedStyle === 'function') {
-				return window.getComputedStyle(elem).display !== 'none' &&
-                    window.getComputedStyle(elem).visibility !== 'hidden' &&
-                    elem.offsetWidth > 0 && elem.offsetHeight > 0;
-
+				return (
+					window.getComputedStyle(elem).display !== 'none' &&
+					window.getComputedStyle(elem).visibility !== 'hidden' &&
+					elem.offsetWidth > 0 &&
+					elem.offsetHeight > 0
+				);
 			} else {
 				return elem && elem.offsetWidth > 0 && elem.offsetHeight > 0;
 			}
@@ -576,13 +596,20 @@ const publicToastrAPI = {
 	clear: toastrInstance.clear.bind(toastrInstance),
 	remove: toastrInstance.remove.bind(toastrInstance),
 	subscribe: toastrInstance.subscribe.bind(toastrInstance),
-	version: toastrInstance.version
+	version: toastrInstance.version,
 };
+
 export type ToastrAPI = typeof publicToastrAPI;
-export default Toastr;
+
+declare global {
+	interface Window {
+		toastr: ToastrAPI;
+	}
+}
 
 // Expose Toastr to the global window object or module.exports for Node.js
 if (typeof window !== 'undefined') {
 	window.toastr = publicToastrAPI;
 }
 
+export default Toastr;

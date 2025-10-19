@@ -101,4 +101,9 @@ declare const publicToastrAPI: {
     version: string;
 };
 export type ToastrAPI = typeof publicToastrAPI;
+declare global {
+    interface Window {
+        toastr: ToastrAPI;
+    }
+}
 export default Toastr;

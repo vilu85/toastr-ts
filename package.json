@@ -2,8 +2,16 @@
 	"name": "toastr-ts",
 	"version": "1.0.0",
 	"description": "TypeScript implementation of Toastr JavaScript library",
-	"module": "./src/index.ts",
+	"main": "./dist/toastr.js",
+	"module": "./dist/toastr.js",
+	"browser": "./dist/toastr.js",
 	"types": "./types",
+	"files": [
+		"dist/",
+		"types/",
+		"src/",
+		"package.json"
+	],
 	"scripts": {
 		"build": "webpack",
 		"build:production": "cross-env NODE_ENV=production webpack",
@@ -60,9 +68,7 @@
 		"@eslint/js": "^9.37.0",
 		"@testing-library/jest-dom": "^6.9.1",
 		"@types/jest": "^30.0.0",
-		"@types/node": "^24.8.1",
 		"@typescript-eslint/eslint-plugin": "^8.46.0",
-		"@typescript-eslint/parser": "^8.46.0",
 		"cross-env": "^10.1.0",
 		"eslint": "^9.37.0",
 		"globals": "^16.4.0",

@@ -15,6 +15,11 @@ module.exports = {
 		path: path.resolve(__dirname, 'dist'),
 		libraryTarget: 'umd',
 		globalObject: 'this',
+		library: {
+			name: 'toastr',
+			type: 'umd',
+			export: 'default',
+		},
 	},
 	resolve: {
 		extensions: ['.ts', '.js', '.scss'],
@@ -28,10 +33,10 @@ module.exports = {
 			new TerserPlugin({
 				parallel: true,
 				terserOptions: {
-					keep_classnames: !isProduction,
-					keep_fnames: !isProduction,
+					// keep_classnames: !isProduction,
+					// keep_fnames: !isProduction,
 					mangle: true,
-					compress: { drop_console: isProduction, keep_fnames: !isProduction, keep_classnames: !isProduction, passes: 2 },
+					compress: { drop_console: isProduction, /*keep_fnames: !isProduction, keep_classnames: !isProduction,*/ passes: 2 },
 					output: {
 						comments: /translators:|@preserve/i,
 					},

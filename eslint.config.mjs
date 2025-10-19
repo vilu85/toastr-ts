@@ -1,22 +1,23 @@
 import globals from 'globals';
 import pluginJs from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import typescriptEslintParser from '@typescript-eslint/parser';
+import jestPlugin from 'eslint-plugin-jest';
+import { defineConfig } from 'eslint/config';
 
-export default tseslint.config(
+export default defineConfig(
 	{ ignores: ['**/.vscode/*', '**/node_modules/*', '**/dist/*', '**/*.d.ts'] },
 	{
 		files: ['**/*.ts'],
-		extends: [
-			pluginJs.configs.recommended,
-			...tseslint.configs.recommended,
-		],
+		extends: [pluginJs.configs.recommended, ...tseslint.configs.recommended],
+		plugins: {
+			'@typescript-eslint': tseslint.plugin,
+			jest: jestPlugin,
+		},
 		languageOptions: {
 			ecmaVersion: 2020,
 			sourceType: 'module',
-			parser: typescriptEslintParser,
+			parser: tseslint.parser,
 			parserOptions: {
-				project: ['./tsconfig.json'],
 				createDefaultProgram: true,
 			},
 			globals: { ...globals.browser, ...globals.node },
@@ -32,7 +33,7 @@ export default tseslint.config(
 			'no-console': 'off',
 			'no-debugger': 'error',
 			// Enforce consistent indentation
-			indent: ['error', 'tab'],
+			indent: ['error', 'tab', { SwitchCase: 1 }],
 			// Enforce consistent linebreak style
 			'linebreak-style': ['error', 'unix'],
 			// Enforce double quotes for strings
@@ -43,5 +44,10 @@ export default tseslint.config(
 			'prefer-const': 'error',
 			'no-shadow': 'off',
 		},
+	},
+	{
+		// enable jest rules on test files
+		files: ['test/**'],
+		extends: [jestPlugin.configs['flat/recommended']],
 	}
 );
