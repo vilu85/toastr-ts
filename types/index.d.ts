@@ -88,22 +88,9 @@ declare class Toastr {
     private delayedHideToast;
     private isVisible;
 }
-declare const publicToastrAPI: {
-    error: (message: string, title?: string, optionsOverride?: Partial<ToastOptions>) => HTMLElement | null;
-    info: (message: string, title?: string, optionsOverride?: Partial<ToastOptions>) => HTMLElement | null;
-    success: (message: string, title?: string, optionsOverride?: Partial<ToastOptions>) => HTMLElement | null;
-    warning: (message: string, title?: string, optionsOverride?: Partial<ToastOptions>) => HTMLElement | null;
-    clear: (toastElement?: HTMLElement, clearOptions?: {
-        force?: boolean;
-    }) => void;
-    remove: (toastElement?: HTMLElement | null) => void;
-    subscribe: (callback: (_response: ToastResponse) => void) => void;
-    version: string;
-};
-export type ToastrAPI = typeof publicToastrAPI;
 declare global {
     interface Window {
-        toastr: ToastrAPI;
+        toastr: typeof Toastr;
     }
 }
 export default Toastr;

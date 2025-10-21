@@ -2,7 +2,7 @@ import { ToastMap, ToastOptions, ToastResponse, ToastType } from './types';
 import './index.scss';
 
 class Toastr {
-	public container!: HTMLElement;
+	public container?: HTMLElement;
 	private listener: ((_response: ToastResponse) => void) | null = null;
 	private toastId = 0;
 	private previousToast?: string;
@@ -140,7 +140,7 @@ class Toastr {
 	 * @param create If true, the container is created if it does not exist.
 	 * @returns The container element.
 	 */
-	public getContainer(options?: ToastOptions, create: boolean = false): HTMLElement {
+	public getContainer(options?: ToastOptions, create: boolean = false): HTMLElement | undefined {
 		if (!options) {
 			options = this.getOptions();
 		}
@@ -397,6 +397,7 @@ class Toastr {
 		intervalId: number | null
 	): void {
 		if (options.closeOnHover) {
+			// @FIXME: This gets called twice if the the mouse hovers over the toast and moves to over the message.
 			toastElement.addEventListener('mouseover', () => this.stickAround(progressBar, intervalId));
 			toastElement.addEventListener('mouseout', () => this.delayedHideToast(toastElement, options, progressBar, intervalId));
 		}
@@ -476,7 +477,10 @@ class Toastr {
 		if (!this.isVisible(toastElement)) {
 			toastElement.remove();
 			if (!this.container?.children.length) {
-				this.container!.remove();
+				// In React apps the container dom element might already be removed 
+				// but is still referenced in the toastr instance.
+				this.container?.remove();
+				this.container = undefined;
 				this.previousToast = undefined;
 			}
 		}
@@ -548,6 +552,7 @@ class Toastr {
 	}
 
 	private stickAround(progressBar: { hideEta: number }, intervalId: number | null): void {
+		console.log('stickAround, intervalId = ', intervalId);
 		if (intervalId) {
 			clearTimeout(intervalId);
 		}
@@ -584,32 +589,15 @@ class Toastr {
 	}
 }
 
-// Create an instance of the class
-const toastrInstance = new Toastr();
-
-// Define the public API object
-const publicToastrAPI = {
-	error: toastrInstance.error.bind(toastrInstance),
-	info: toastrInstance.info.bind(toastrInstance),
-	success: toastrInstance.success.bind(toastrInstance),
-	warning: toastrInstance.warning.bind(toastrInstance),
-	clear: toastrInstance.clear.bind(toastrInstance),
-	remove: toastrInstance.remove.bind(toastrInstance),
-	subscribe: toastrInstance.subscribe.bind(toastrInstance),
-	version: toastrInstance.version,
-};
-
-export type ToastrAPI = typeof publicToastrAPI;
-
 declare global {
 	interface Window {
-		toastr: ToastrAPI;
+		toastr: typeof Toastr;
 	}
 }
 
 // Expose Toastr to the global window object or module.exports for Node.js
 if (typeof window !== 'undefined') {
-	window.toastr = publicToastrAPI;
+	window.toastr = Toastr;
 }
 
 export default Toastr;

@@ -2,10 +2,17 @@
 	"name": "toastr-ts",
 	"version": "1.0.0",
 	"description": "TypeScript implementation of Toastr JavaScript library",
-	"main": "./dist/toastr.js",
+	"main": "./dist/toastr.umd.js",
 	"module": "./dist/toastr.js",
-	"browser": "./dist/toastr.js",
+	"browser": "./dist/toastr.umd.js",
 	"types": "./types",
+	"exports": {
+		".": {
+			"import": "./dist/toastr.js",
+			"require": "./dist/toastr.umd.js",
+			"default": "./dist/toastr.js"
+		}
+	},
 	"files": [
 		"dist/",
 		"types/",
@@ -77,6 +84,7 @@
 		"jest-environment-jsdom": "^30.2.0",
 		"jsdom": "^27.0.0",
 		"prettier": "^3.6.2",
+		"style-loader": "^4.0.0",
 		"ts-jest": "^29.4.5",
 		"typescript-eslint": "^8.46.2"
 	}

@@ -1,26 +1,13 @@
 const path = require('path');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 
 const args = getParameters();
 const isProduction = args.indexOf('production') !== -1;
 
-module.exports = {
+const commonConfig = {
 	mode: isProduction ? 'production' : 'development',
-	target: 'browserslist',
 	entry: { toastr: './src/index.ts' },
-	output: {
-		filename: 'toastr.js',
-		path: path.resolve(__dirname, 'dist'),
-		libraryTarget: 'umd',
-		globalObject: 'this',
-		library: {
-			name: 'toastr',
-			type: 'umd',
-			export: 'default',
-		},
-	},
 	resolve: {
 		extensions: ['.ts', '.js', '.scss'],
 		fallback: {
@@ -33,10 +20,8 @@ module.exports = {
 			new TerserPlugin({
 				parallel: true,
 				terserOptions: {
-					// keep_classnames: !isProduction,
-					// keep_fnames: !isProduction,
 					mangle: true,
-					compress: { drop_console: isProduction, /*keep_fnames: !isProduction, keep_classnames: !isProduction,*/ passes: 2 },
+					compress: { drop_console: isProduction, passes: 2 },
 					output: {
 						comments: /translators:|@preserve/i,
 					},
@@ -46,11 +31,6 @@ module.exports = {
 			new CssMinimizerPlugin(),
 		],
 	},
-	plugins: [
-		new MiniCssExtractPlugin({
-			filename: '[name].css',
-		}),
-	],
 	module: {
 		rules: [
 			{
@@ -61,12 +41,12 @@ module.exports = {
 			{
 				test: /\.(css|sass|scss)$/,
 				use: [
-					MiniCssExtractPlugin.loader,
+					'style-loader', // Injects CSS into the DOM via <style> tags
 					{
 						loader: 'css-loader',
 						options: {
 							importLoaders: 2,
-							sourceMap: true,
+							sourceMap: !isProduction,
 						},
 					},
 					{
@@ -101,6 +81,44 @@ module.exports = {
 	},
 	devtool: isProduction ? false : 'source-map',
 };
+
+// UMD Build (for script tags and older module systems)
+const umdConfig = {
+	...commonConfig,
+	target: 'browserslist',
+	output: {
+		filename: 'toastr.umd.js',
+		path: path.resolve(__dirname, 'dist'),
+		libraryTarget: 'umd',
+		globalObject: 'this',
+		library: {
+			name: 'toastr',
+			type: 'umd',
+		},
+		umdNamedDefine: true,
+	},
+	experiments: {
+		outputModule: false,
+	},
+};
+
+// ESM Build (for modern bundlers like Vite, Webpack 5, etc.)
+const esmConfig = {
+	...commonConfig,
+	target: 'web',
+	output: {
+		filename: 'toastr.js',
+		path: path.resolve(__dirname, 'dist'),
+		library: {
+			type: 'module',
+		},
+	},
+	experiments: {
+		outputModule: true,
+	},
+};
+
+module.exports = [esmConfig, umdConfig];
 
 function getParameters() {
 	var args = [];
