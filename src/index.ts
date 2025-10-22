@@ -1,12 +1,18 @@
 import { ToastMap, ToastOptions, ToastResponse, ToastType } from './types';
+import { Toast } from './Toast';
+import { ToastContainer } from './ToastContainer';
+import { ToastBuilder } from './ToastBuilder';
 import './index.scss';
 
+/**
+ * Main Toastr class that orchestrates toast notifications
+ */
 class Toastr {
-	public container?: HTMLElement;
 	private listener: ((_response: ToastResponse) => void) | null = null;
 	private toastId = 0;
 	private previousToast?: string;
-	private toasts: { [id: number]: HTMLElement } = {};
+	private toasts: Map<number, Toast> = new Map();
+	private toastContainer: ToastContainer;
 
 	public options: ToastOptions = {};
 	public version = '3.0.0';
@@ -18,12 +24,31 @@ class Toastr {
 		warning: 'warning',
 	};
 
+	/**
+	 * Get the container element (for backward compatibility)
+	 * Returns the container only if it's already been set/created by toastr
+	 */
+	public get container(): HTMLElement | undefined {
+		return this.toastContainer.getContainer(this.getOptions(), false);
+	}
+
+	/**
+	 * Set the container element (for backward compatibility)
+	 */
+	public set container(value: HTMLElement | undefined) {
+		// Clear the reference in the container manager
+		if (value === undefined) {
+			this.toastContainer.clearReference();
+		}
+	}
+
 	constructor(options: Partial<ToastOptions> = {}) {
 		const defaultOptions = this.getDefaults();
 		this.options = {
 			...defaultOptions,
 			...options,
 		};
+		this.toastContainer = new ToastContainer();
 	}
 
 	/**
@@ -102,12 +127,19 @@ class Toastr {
 	 * @returns void
 	 */
 	public clear(toastElement?: HTMLElement, clearOptions?: { force?: boolean }): void {
-		const options = this.getOptions();
+		// Get or create container (will create if doesn't exist but element with ID exists in DOM)
 		if (!this.container) {
-			this.getContainer(options);
+			this.getContainer(this.getOptions(), 'ifExists');
 		}
-		if (!this.clearToast(toastElement, options, clearOptions)) {
-			this.clearContainer(options);
+
+		if (toastElement) {
+			const toast = this.findToastByElement(toastElement);
+			if (toast) {
+				toast.hide(clearOptions?.force);
+			}
+		} else {
+			// Clear all toasts
+			this.toasts.forEach((toast) => toast.hide(clearOptions?.force));
 		}
 	}
 
@@ -118,18 +150,31 @@ class Toastr {
 	 */
 	public remove(toastElement?: HTMLElement | null): void {
 		const options = this.getOptions();
+
+		// Try to get existing container (won't create new one, only uses if exists in DOM)
 		if (!this.container) {
-			this.getContainer(options);
+			this.getContainer(options, 'ifExists');
 		}
-		if (toastElement && !toastElement.matches(':focus')) {
-			this.removeToast(toastElement);
-			return;
-		}
-		if (this.container?.children.length) {
-			this.container.remove();
+
+		if (toastElement) {
+			// Don't remove if focused
+			if (!toastElement.matches(':focus')) {
+				const toast = this.findToastByElement(toastElement);
+				if (toast) {
+					toast.remove();
+				}
+			}
+		} else {
+			// Remove container if it has toasts
+			if (this.toastContainer.hasToasts()) {
+				this.toasts.forEach((toast) => toast.remove());
+			}
 		}
 	}
 
+	/**
+	 * Subscribe to toast events
+	 */
 	public subscribe(callback: (_response: ToastResponse) => void): void {
 		this.listener = callback;
 	}
@@ -137,37 +182,19 @@ class Toastr {
 	/**
 	 * Returns the container element used for the toast notifications.
 	 * @param options The toast options. If not provided, the default options are used.
-	 * @param create If true, the container is created if it does not exist.
+	 * @param create If true, the container is created if it does not exist. If 'ifExists', only returns existing container.
 	 * @returns The container element.
 	 */
-	public getContainer(options?: ToastOptions, create: boolean = false): HTMLElement | undefined {
+	public getContainer(options?: ToastOptions, create: boolean | 'ifExists' = false): HTMLElement | undefined {
 		if (!options) {
 			options = this.getOptions();
 		}
-		if (!this.container) {
-			const oldContainer = document.getElementById(options.containerId!);
-			if (oldContainer) {
-				this.container = oldContainer;
-				return oldContainer;
-			}
-		}
-		if (this.container) {
-			return this.container;
-		}
-		if (create) {
-			this.container = this.createContainer(options);
-		}
-		return this.container;
+		return this.toastContainer.getContainer(options, create);
 	}
 
-	private createContainer(options: ToastOptions): HTMLElement {
-		const container = document.createElement('div');
-		container.id = options.containerId!;
-		container.className = options.positionClass!;
-		document.querySelector(options.target!)?.appendChild(container);
-		return container;
-	}
-
+	/**
+	 * Create and show a toast notification
+	 */
 	private notify(map: ToastMap): HTMLElement | null {
 		const options = this.getOptions();
 		const iconClass = map?.optionsOverride?.iconClass || map.iconClass || options.iconClass;
@@ -184,260 +211,58 @@ class Toastr {
 		this.toastId++;
 
 		// Create container
-		this.getContainer(options, true);
+		this.toastContainer.getContainer(options, true);
 
-		let intervalId: number | null = null;
-		const toastElement = document.createElement('div');
-		const titleElement = document.createElement('div');
-		const messageElement = document.createElement('div');
-		const progressElement = document.createElement('div');
-		const closeElement = options?.closeHtml || document.createElement('div');
+		// Create toast instance
+		const toast = new Toast(this.toastId, map, options, (removedToast) => this.handleToastRemoval(removedToast));
 
-		const progressBar = {
-			intervalId: null as unknown as number,
-			hideEta: null as unknown as number,
-			maxHideTime: null as unknown as number,
-		};
+		// Add to container
+		this.toastContainer.addToast(toast.element, options);
 
-		const response: ToastResponse = {
-			toastId: this.toastId,
-			state: 'visible',
-			startTime: new Date(),
-			options,
-			map,
-		};
+		// Store reference
+		this.toasts.set(this.toastId, toast);
 
-		this.personalizeToast(toastElement, titleElement, messageElement, progressElement, closeElement, map, options);
-		intervalId = this.displayToast(toastElement, options, intervalId, progressBar, options.onShown);
-		this.handleEvents(toastElement, closeElement, options, progressBar, intervalId);
-		this.publish(response);
+		// Show the toast
+		toast.show();
+
+		// Publish response
+		this.publish(toast.getResponse());
 
 		if (options.debug && console) {
-			console.log(response);
+			console.log(toast.getResponse());
 		}
-		this.toasts[this.toastId] = toastElement;
 
-		return toastElement;
+		return toast.element;
 	}
 
-	private personalizeToast(
-		toastElement: HTMLElement,
-		titleElement: HTMLElement,
-		messageElement: HTMLElement,
-		progressElement: HTMLElement,
-		closeElement: HTMLElement,
-		map: ToastMap,
-		options: ToastOptions
-	): void {
-		if (map.iconClass) {
-			if (typeof options.toastClass === 'string') {
-				options.toastClass!.split(' ').forEach((className) => toastElement.classList.add(className));
-			} else if (Array.isArray(options.toastClass)) {
-				options.toastClass.forEach((value) => toastElement.classList.add(value));
-			}
+	/**
+	 * Handle toast removal callback
+	 */
+	private handleToastRemoval(toast: Toast): void {
+		this.toastContainer.removeToast(toast.element);
+		this.toasts.delete(toast.id);
 
-			toastElement.classList.add(map.iconClass);
+		// Clear previous toast reference if container is empty
+		if (!this.toastContainer.hasToasts()) {
+			this.previousToast = undefined;
 		}
-		if (map.title) {
-			titleElement.className = options.titleClass!;
-			titleElement.innerHTML = options.escapeHtml ? this.escapeHtml(map.title) : map.title;
-			toastElement.appendChild(titleElement);
-		}
-		if (map.message) {
-			messageElement.className = options.messageClass!;
-			messageElement.innerHTML = options.escapeHtml ? this.escapeHtml(map.message!) : map.message!;
-			toastElement.appendChild(messageElement);
-		}
-		if (options.closeButton) {
-			closeElement.className = options.closeClass!;
-			closeElement.setAttribute('role', 'button');
-			closeElement.innerHTML = options.closeHtml!.innerHTML;
-			toastElement.appendChild(closeElement);
-		}
-		if (options.progressBar) {
-			progressElement.className = options.progressClass!;
-			toastElement.appendChild(progressElement);
-		}
-		if (options.rtl) {
-			toastElement.classList.add('rtl');
-		}
-		if (options.newestOnTop) {
-			this.container?.prepend(toastElement);
-		} else {
-			this.container?.append(toastElement);
-		}
-
-		let ariaValue = '';
-		switch (map.iconClass) {
-			case 'toast-success':
-			case 'toast-info':
-				ariaValue = 'polite';
-				break;
-			default:
-				ariaValue = 'assertive';
-		}
-		toastElement.setAttribute('aria-live', ariaValue);
 	}
 
-	private escapeHtml(source: string): string {
-		return source.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-	}
-
-	private displayToast(
-		toastElement: HTMLElement,
-		options: ToastOptions,
-		intervalId: number | null,
-		progressBar: {
-			intervalId: number;
-			hideEta: number;
-			maxHideTime: number;
-		},
-		onShown?: () => void
-	): number | null {
-		toastElement.style.display = 'none';
-		this.showElement(toastElement, options.showMethod!, options.showDuration!, options.showEasing!, onShown);
-
-		if (options.timeOut! > 0) {
-			intervalId = window.setTimeout(() => this.hideToast(toastElement, options, progressBar, intervalId!), options.timeOut!);
-			progressBar.maxHideTime = options.timeOut!;
-			progressBar.hideEta = new Date().getTime() + progressBar.maxHideTime;
-			if (options.progressBar) {
-				progressBar.intervalId = window.setInterval(() => this.updateProgress(toastElement, progressBar), 10);
+	/**
+	 * Find toast by element
+	 */
+	private findToastByElement(element: HTMLElement): Toast | undefined {
+		for (const toast of this.toasts.values()) {
+			if (toast.element === element) {
+				return toast;
 			}
 		}
-
-		return intervalId;
+		return undefined;
 	}
 
-	private showElement(
-		element: HTMLElement,
-		method: 'fadeIn' | 'slideDown' | 'show',
-		duration: number,
-		easing: 'swing' | 'linear',
-		onShown?: () => void
-	): void {
-		if (method === 'fadeIn') {
-			element.style.transition = `opacity ${duration}ms ${easing}`;
-			element.style.opacity = '0';
-			element.style.display = 'block';
-			requestAnimationFrame(() => {
-				element.style.opacity = '1';
-				onShown?.();
-			});
-		} else if (method === 'slideDown') {
-			element.style.transition = `max-height ${duration}ms ${easing}`;
-			element.style.maxHeight = '0';
-			element.style.display = 'block';
-			requestAnimationFrame(() => {
-				element.style.maxHeight = `${element.scrollHeight}px`;
-				onShown?.();
-			});
-		} else {
-			element.style.display = 'block';
-			onShown?.();
-		}
-	}
-
-	private hideToast(
-		toastElement: HTMLElement,
-		options: ToastOptions,
-		progressBar: { intervalId: number; hideEta: number; maxHideTime: number },
-		intervalId: number | null
-	): void {
-		this.hideElement(
-			toastElement,
-			() => {
-				this.removeToast(toastElement);
-				if (options?.onHidden) {
-					options.onHidden();
-				}
-				if (intervalId) {
-					clearTimeout(intervalId);
-				}
-				// if (options.onHidden && response.state !== 'hidden') {
-				//     options.onHidden();
-				// }
-				// response.state = 'hidden';
-				// response.endTime = new Date();
-				// publish(response);
-			},
-			options.hideMethod,
-			options.hideDuration,
-			options.hideEasing
-		);
-		clearTimeout(progressBar.intervalId);
-	}
-
-	private hideElement(
-		element: HTMLElement,
-		onComplete: () => void,
-		method?: 'fadeOut',
-		duration?: number,
-		easing?: 'swing' | 'linear'
-	): void {
-		if (method === 'fadeOut') {
-			element.style.transition = `opacity ${duration}ms ${easing}`;
-			element.style.opacity = '1';
-			requestAnimationFrame(() => (element.style.opacity = '0'));
-			setTimeout(() => {
-				element.style.display = 'none';
-				onComplete();
-			}, duration);
-		} else {
-			element.style.display = 'none';
-			onComplete();
-		}
-	}
-
-	private handleEvents(
-		toastElement: HTMLElement,
-		closeElement: HTMLElement,
-		options: ToastOptions,
-		progressBar: { intervalId: number; hideEta: number; maxHideTime: number },
-		intervalId: number | null
-	): void {
-		if (options.closeOnHover) {
-			// @FIXME: This gets called twice if the the mouse hovers over the toast and moves to over the message.
-			toastElement.addEventListener('mouseover', () => this.stickAround(progressBar, intervalId));
-			toastElement.addEventListener('mouseout', () => this.delayedHideToast(toastElement, options, progressBar, intervalId));
-		}
-
-		if (!options.onclick && options.tapToDismiss) {
-			toastElement.addEventListener('click', () => this.hideToast(toastElement, options, progressBar, intervalId));
-		}
-
-		if (options.closeButton && closeElement) {
-			closeElement.addEventListener('click', (event) => {
-				if (event?.stopPropagation) {
-					event.stopPropagation();
-				} else if (event?.cancelBubble) {
-					event.cancelBubble = true;
-				}
-
-				if (options.onCloseClick) {
-					options.onCloseClick(event);
-				}
-
-				this.hideToast(toastElement, options, progressBar, intervalId);
-			});
-		}
-
-		if (options.onclick) {
-			toastElement.addEventListener('click', (event) => {
-				options.onclick!(event);
-				this.hideToast(toastElement, options, progressBar, intervalId);
-			});
-		}
-	}
-
-	private updateProgress($toastElement: HTMLElement, progressBar: { hideEta: number; maxHideTime: number }): void {
-		const percentage = ((progressBar.hideEta - new Date().getTime()) / progressBar.maxHideTime) * 100;
-		const progressElement = $toastElement.querySelector(`.${this.getOptions().progressClass}`) as HTMLElement;
-		if (progressElement) {
-			progressElement.style.width = `${percentage}%`;
-		}
-	}
-
+	/**
+	 * Check if notification should be prevented
+	 */
 	private shouldExit(options: ToastOptions, map: ToastMap): boolean {
 		if (options.preventDuplicates && map.message === this.previousToast) {
 			return true;
@@ -446,49 +271,9 @@ class Toastr {
 		return false;
 	}
 
-	private clearToast(toastElement?: HTMLElement | null, options?: ToastOptions, clearOptions?: { force?: boolean }): boolean {
-		const force = clearOptions?.force || false;
-		if (toastElement && (force || !toastElement.matches(':focus'))) {
-			this.hideElement(
-				toastElement,
-				() => {
-					this.removeToast(toastElement);
-				},
-				options?.hideMethod,
-				options?.hideDuration,
-				options?.hideEasing
-			);
-			return true;
-		}
-		return false;
-	}
-
-	private clearContainer(options: ToastOptions): void {
-		const toastsToClear = Array.from(this.container!.children);
-		for (let i = toastsToClear.length - 1; i >= 0; i--) {
-			this.clearToast(toastsToClear[i] as HTMLElement, options);
-		}
-	}
-
-	private removeToast(toastElement: HTMLElement): void {
-		if (!this.container) {
-			this.getContainer();
-		}
-		if (!this.isVisible(toastElement)) {
-			toastElement.remove();
-			if (!this.container?.children.length) {
-				// In React apps the container dom element might already be removed 
-				// but is still referenced in the toastr instance.
-				this.container?.remove();
-				this.container = undefined;
-				this.previousToast = undefined;
-			}
-		}
-		if (this.toasts?.[this.toastId]) {
-			delete this.toasts[this.toastId];
-		}
-	}
-
+	/**
+	 * Get merged options
+	 */
 	private getOptions(): ToastOptions {
 		return {
 			...this.getDefaults(),
@@ -496,13 +281,9 @@ class Toastr {
 		};
 	}
 
-	private createCloseBtn = (): HTMLButtonElement => {
-		const btn = document.createElement('button');
-		btn.setAttribute('type', 'button');
-		btn.innerHTML = '&times;';
-		return btn;
-	};
-
+	/**
+	 * Get default options
+	 */
 	private getDefaults(): ToastOptions {
 		return {
 			tapToDismiss: true,
@@ -535,7 +316,7 @@ class Toastr {
 			messageClass: 'toast-message',
 			escapeHtml: false,
 			target: 'body',
-			closeHtml: this.createCloseBtn(),
+			closeHtml: ToastBuilder.createCloseButton(),
 			closeClass: 'toast-close-button',
 			newestOnTop: true,
 			preventDuplicates: false,
@@ -545,47 +326,13 @@ class Toastr {
 		};
 	}
 
+	/**
+	 * Publish toast response to subscriber
+	 */
 	private publish(response: ToastResponse): void {
 		if (this.listener) {
 			this.listener(response);
 		}
-	}
-
-	private stickAround(progressBar: { hideEta: number }, intervalId: number | null): void {
-		console.log('stickAround, intervalId = ', intervalId);
-		if (intervalId) {
-			clearTimeout(intervalId);
-		}
-		progressBar.hideEta = 0;
-	}
-
-	private delayedHideToast(
-		$toastElement: HTMLElement,
-		options: ToastOptions,
-		progressBar: { hideEta: number; maxHideTime: number; intervalId: number },
-		intervalId: number | null
-	): void {
-		if (options.timeOut! > 0 || options.extendedTimeOut! > 0) {
-			intervalId = window.setTimeout(() => this.hideToast($toastElement, options, progressBar, intervalId), options.extendedTimeOut!);
-			progressBar.maxHideTime = options.extendedTimeOut!;
-			progressBar.hideEta = new Date().getTime() + progressBar.maxHideTime;
-		}
-	}
-
-	private isVisible(elem?: HTMLElement) {
-		if (elem) {
-			if (typeof window?.getComputedStyle === 'function') {
-				return (
-					window.getComputedStyle(elem).display !== 'none' &&
-					window.getComputedStyle(elem).visibility !== 'hidden' &&
-					elem.offsetWidth > 0 &&
-					elem.offsetHeight > 0
-				);
-			} else {
-				return elem && elem.offsetWidth > 0 && elem.offsetHeight > 0;
-			}
-		}
-		return false;
 	}
 }
 
