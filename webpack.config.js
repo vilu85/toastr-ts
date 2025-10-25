@@ -20,8 +20,10 @@ const commonConfig = {
 			new TerserPlugin({
 				parallel: true,
 				terserOptions: {
+					keep_classnames: !isProduction,
+					keep_fnames: !isProduction,
 					mangle: true,
-					compress: { drop_console: isProduction, passes: 2 },
+					compress: { drop_console: isProduction, keep_fnames: !isProduction, keep_classnames: !isProduction, passes: 2 },
 					output: {
 						comments: /translators:|@preserve/i,
 					},
@@ -94,6 +96,7 @@ const umdConfig = {
 		library: {
 			name: 'toastr',
 			type: 'umd',
+			export: 'default',
 		},
 		umdNamedDefine: true,
 	},
