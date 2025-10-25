@@ -4,42 +4,51 @@ This directory contains the demo page for Toastr-TS, deployed via GitHub Pages.
 
 ## 🚀 Deployment
 
-To deploy to GitHub Pages:
+The demo is automatically deployed to GitHub Pages via GitHub Actions.
 
-1. Push this directory to your repository
-2. Go to your repository settings on GitHub
-3. Navigate to **Pages** section
-4. Under "Source", select:
-   - **Source**: Deploy from a branch
-   - **Branch**: `main` (or your default branch)
-   - **Folder**: `/docs`
-5. Click **Save**
+**Setup (one-time):**
+1. Go to your repository settings on GitHub
+2. Navigate to **Pages** section
+3. Under "Source", select: **GitHub Actions**
+4. The workflow in `.github/workflows/deploy-pages.yml` will handle the rest
 
-GitHub will automatically deploy your demo page to:
-`https://vilu85.github.io/toastr-ts/`
+**Automatic deployment:**
+- Every push to `master` branch triggers a deployment
+- The workflow builds the library and copies `dist/toastr.umd.js` into `docs/dist/`
+- Demo is available at: `https://vilu85.github.io/toastr-ts/`
+
+**Manual deployment:**
+- Go to **Actions** tab in your repository
+- Select "Deploy Demo to GitHub Pages"
+- Click "Run workflow"
 
 ## 📝 Local Development
 
 To test the demo page locally:
 
-1. Make sure you've built the library:
+1. Build the library and prepare docs:
    ```bash
    npm run build
+   
+   # Copy built files to docs for local testing
+   mkdir -p docs/dist
+   cp dist/toastr.umd.js docs/dist/
    ```
 
 2. Open `docs/index.html` in your browser, or use a local server:
    ```bash
-   # Using Python
-   python -m http.server 8000
-   
    # Using Node.js http-server
-   npx http-server
+   npx http-server docs
    
-   # Using PHP
-   php -S localhost:8000
+   # Using Python
+   cd docs && python -m http.server 8000
+   
+   # Or just open the file directly
+   open docs/index.html  # macOS
+   start docs/index.html # Windows
    ```
 
-3. Navigate to `http://localhost:8000/docs/`
+3. If using a local server, navigate to `http://localhost:8080/`
 
 ## 🔧 Updating the Demo
 
