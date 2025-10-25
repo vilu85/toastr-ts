@@ -336,15 +336,4 @@ class Toastr {
 	}
 }
 
-declare global {
-	interface Window {
-		toastr: typeof Toastr;
-	}
-}
-
-// Expose Toastr to the global window object or module.exports for Node.js
-if (typeof window !== 'undefined') {
-	window.toastr = Toastr;
-}
-
 export default Toastr;

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toastr-TS - Toast Notification Library</title>
+    <meta name="description" content="A modern TypeScript implementation of Toastr - beautiful toast notifications for web applications">
+    
+    <!-- Pico CSS for beautiful styling -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    
+    <!-- Toastr-TS Library -->
+    <script src="../dist/toastr.umd.js"></script>
+    
+    <style>
+        body {
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        header h1 {
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            color: var(--pico-muted-color);
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .grid-2col {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .control-panel {
+            background: var(--pico-card-background-color);
+            padding: 2rem;
+            border-radius: var(--pico-border-radius);
+            border: 1px solid var(--pico-muted-border-color);
+        }
+        
+        .quick-demo {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .quick-demo button {
+            margin: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .code-section {
+            background: var(--pico-card-background-color);
+            padding: 2rem;
+            border-radius: var(--pico-border-radius);
+            border: 1px solid var(--pico-muted-border-color);
+        }
+        
+        pre {
+            background: var(--pico-code-background-color);
+            padding: 1rem;
+            border-radius: var(--pico-border-radius);
+            overflow-x: auto;
+            margin: 0;
+        }
+        
+        code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--pico-muted-border-color);
+        }
+        
+        .tab {
+            padding: 0.5rem 1rem;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            color: var(--pico-muted-color);
+            transition: all 0.2s;
+        }
+        
+        .tab:hover {
+            color: var(--pico-color);
+        }
+        
+        .tab.active {
+            color: var(--pico-primary);
+            border-bottom-color: var(--pico-primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 0.25rem;
+            background: var(--pico-primary);
+            color: white;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--pico-muted-border-color);
+            color: var(--pico-muted-color);
+        }
+        
+        footer a {
+            color: var(--pico-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <header>
+            <h1>🎉 Toastr-TS</h1>
+            <p>A modern TypeScript implementation of Toastr - Beautiful toast notifications for web applications</p>
+            <p>
+                <a href="https://github.com/vilu85/toastr-ts" target="_blank" role="button" class="secondary">
+                    View on GitHub
+                </a>
+                <a href="https://www.npmjs.com/package/toastr-ts" target="_blank" role="button" class="secondary">
+                    npm Package
+                </a>
+            </p>
+        </header>
+
+        <!-- Quick Demo -->
+        <section class="control-panel">
+            <h2>Quick Demo</h2>
+            <p>Try the different toast types with default settings:</p>
+            <div class="quick-demo">
+                <button onclick="showSuccess()">✓ Success</button>
+                <button onclick="showInfo()" class="secondary">ℹ Info</button>
+                <button onclick="showWarning()" class="contrast">⚠ Warning</button>
+                <button onclick="showError()" class="secondary">✗ Error</button>
+            </div>
+        </section>
+
+        <!-- Main Demo -->
+        <div class="grid-2col" style="margin-top: 2rem;">
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <h3>Customize Toast</h3>
+                
+                <div class="form-group">
+                    <label for="toastType">Toast Type</label>
+                    <select id="toastType">
+                        <option value="success">Success</option>
+                        <option value="info">Info</option>
+                        <option value="warning">Warning</option>
+                        <option value="error">Error</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" placeholder="Toast Title" value="Hello!">
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <input type="text" id="message" placeholder="Toast Message" value="This is a toast notification">
+                </div>
+
+                <div class="form-group">
+                    <label for="position">Position</label>
+                    <select id="position">
+                        <option value="toast-top-right" selected>Top Right</option>
+                        <option value="toast-top-left">Top Left</option>
+                        <option value="toast-top-center">Top Center</option>
+                        <option value="toast-top-full-width">Top Full Width</option>
+                        <option value="toast-bottom-right">Bottom Right</option>
+                        <option value="toast-bottom-left">Bottom Left</option>
+                        <option value="toast-bottom-center">Bottom Center</option>
+                        <option value="toast-bottom-full-width">Bottom Full Width</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="timeOut">Timeout (ms)</label>
+                        <input type="number" id="timeOut" value="5000" min="0" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label for="extendedTimeOut">Extended Timeout (ms)</label>
+                        <input type="number" id="extendedTimeOut" value="1000" min="0" step="1000">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="closeButton" checked>
+                        Show Close Button
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="progressBar" checked>
+                        Show Progress Bar
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="newestOnTop" checked>
+                        Newest On Top
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="preventDuplicates">
+                        Prevent Duplicates
+                    </label>
+                </div>
+
+                <button onclick="showCustomToast()" style="width: 100%;">Show Custom Toast</button>
+                <button onclick="clearToasts()" class="secondary" style="width: 100%; margin-top: 0.5rem;">Clear All Toasts</button>
+            </div>
+
+            <!-- Code Examples -->
+            <div class="code-section">
+                <h3>Installation & Usage</h3>
+                
+                <div class="tabs">
+                    <button class="tab active" onclick="showTab('npm')">npm</button>
+                    <button class="tab" onclick="showTab('cdn')">CDN</button>
+                    <button class="tab" onclick="showTab('react')">React</button>
+                </div>
+
+                <div id="npm-tab" class="tab-content active">
+                    <h4>Install via npm</h4>
+                    <pre><code>npm install toastr-ts</code></pre>
+                    
+                    <h4>Usage (ES Modules)</h4>
+                    <pre><code>import Toastr from 'toastr-ts';
+
+const toastr = new Toastr();
+
+// Show notifications
+toastr.success('Operation successful!');
+toastr.error('Something went wrong!');
+toastr.info('Here is some info');
+toastr.warning('Be careful!');
+
+// With title
+toastr.success('Settings saved', 'Success!');
+
+// With custom options
+toastr.info('Custom message', 'Info', {
+  timeOut: 3000,
+  progressBar: true,
+  closeButton: true
+});</code></pre>
+                </div>
+
+                <div id="cdn-tab" class="tab-content">
+                    <h4>Include via CDN</h4>
+                    <pre><code>&lt;!-- Add the script tag --&gt;
+&lt;script src="https://unpkg.com/toastr-ts/dist/toastr.umd.js"&gt;&lt;/script&gt;
+
+&lt;script&gt;
+  // Create instance
+  const toastr = new window.toastr();
+  
+  // Show notifications
+  toastr.success('It works!');
+  toastr.error('Error message');
+  toastr.info('Info message');
+  toastr.warning('Warning message');
+&lt;/script&gt;</code></pre>
+                </div>
+
+                <div id="react-tab" class="tab-content">
+                    <h4>React/TypeScript</h4>
+                    <pre><code>import { useState } from 'react';
+import Toastr from 'toastr-ts';
+
+function MyComponent() {
+  const [toastr] = useState(() => new Toastr());
+  
+  const handleClick = () => {
+    toastr.success('Action completed!');
+  };
+  
+  return (
+    &lt;button onClick={handleClick}&gt;
+      Show Toast
+    &lt;/button&gt;
+  );
+}</code></pre>
+                </div>
+
+                <h4 style="margin-top: 2rem;">Key Features</h4>
+                <ul>
+                    <li>✨ Modern TypeScript implementation</li>
+                    <li>📦 Zero runtime dependencies</li>
+                    <li>🎨 Styles bundled (no separate CSS import needed)</li>
+                    <li>⚡ Framework-agnostic (works with React, Vue, Angular, etc.)</li>
+                    <li>🌐 UMD & ESM builds included</li>
+                    <li>📱 Responsive design</li>
+                    <li>♿ Accessible (ARIA attributes)</li>
+                    <li>🎯 Fully customizable</li>
+                </ul>
+            </div>
+        </div>
+
+        <footer>
+            <p>
+                Made with ❤️ by <a href="https://github.com/vilu85" target="_blank">Ville Perkkio</a>
+                | <a href="https://github.com/vilu85/toastr-ts/blob/main/LICENSE" target="_blank">MIT License</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Initialize Toastr instance
+        const toastr = new window.toastr();
+
+        // Quick demo functions
+        function showSuccess() {
+            toastr.success('Your changes have been saved successfully!', 'Success!');
+        }
+
+        function showInfo() {
+            toastr.info('This is an informational message', 'Info');
+        }
+
+        function showWarning() {
+            toastr.warning('Please review your input', 'Warning');
+        }
+
+        function showError() {
+            toastr.error('An error occurred while processing your request', 'Error!');
+        }
+
+        // Custom toast with form values
+        function showCustomToast() {
+            const type = document.getElementById('toastType').value;
+            const title = document.getElementById('title').value;
+            const message = document.getElementById('message').value;
+            const position = document.getElementById('position').value;
+            const timeOut = parseInt(document.getElementById('timeOut').value);
+            const extendedTimeOut = parseInt(document.getElementById('extendedTimeOut').value);
+            const closeButton = document.getElementById('closeButton').checked;
+            const progressBar = document.getElementById('progressBar').checked;
+            const newestOnTop = document.getElementById('newestOnTop').checked;
+            const preventDuplicates = document.getElementById('preventDuplicates').checked;
+
+            const options = {
+                positionClass: position,
+                timeOut: timeOut,
+                extendedTimeOut: extendedTimeOut,
+                closeButton: closeButton,
+                progressBar: progressBar,
+                newestOnTop: newestOnTop,
+                preventDuplicates: preventDuplicates
+            };
+
+            toastr[type](message, title, options);
+        }
+
+        // Clear all toasts
+        function clearToasts() {
+            toastr.clear();
+        }
+
+        // Tab switching
+        function showTab(tabName) {
+            // Remove active class from all tabs and contents
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active class to selected tab and content
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+
+        // Show welcome message on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                toastr.success('Welcome to Toastr-TS demo!', 'Hello! 👋', {
+                    timeOut: 3000
+                });
+            }, 500);
+        });
+    </script>
+</body>
+</html>

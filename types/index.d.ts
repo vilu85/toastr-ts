@@ -1,14 +1,26 @@
 import { ToastOptions, ToastResponse } from './types';
 import './index.scss';
+/**
+ * Main Toastr class that orchestrates toast notifications
+ */
 declare class Toastr {
-    container: HTMLElement;
     private listener;
     private toastId;
     private previousToast?;
     private toasts;
+    private toastContainer;
     options: ToastOptions;
     version: string;
     private toastType;
+    /**
+     * Get the container element (for backward compatibility)
+     * Returns the container only if it's already been set/created by toastr
+     */
+    get container(): HTMLElement | undefined;
+    /**
+     * Set the container element (for backward compatibility)
+     */
+    set container(value: HTMLElement | undefined);
     constructor(options?: Partial<ToastOptions>);
     /**
      * Create an error toast notification.
@@ -58,39 +70,44 @@ declare class Toastr {
      * @returns void
      */
     remove(toastElement?: HTMLElement | null): void;
+    /**
+     * Subscribe to toast events
+     */
     subscribe(callback: (_response: ToastResponse) => void): void;
     /**
      * Returns the container element used for the toast notifications.
      * @param options The toast options. If not provided, the default options are used.
-     * @param create If true, the container is created if it does not exist.
+     * @param create If true, the container is created if it does not exist. If 'ifExists', only returns existing container.
      * @returns The container element.
      */
-    getContainer(options?: ToastOptions, create?: boolean): HTMLElement;
-    private createContainer;
+    getContainer(options?: ToastOptions, create?: boolean | 'ifExists'): HTMLElement | undefined;
+    /**
+     * Create and show a toast notification
+     */
     private notify;
-    private personalizeToast;
-    private escapeHtml;
-    private displayToast;
-    private showElement;
-    private hideToast;
-    private hideElement;
-    private handleEvents;
-    private updateProgress;
+    /**
+     * Handle toast removal callback
+     */
+    private handleToastRemoval;
+    /**
+     * Find toast by element
+     */
+    private findToastByElement;
+    /**
+     * Check if notification should be prevented
+     */
     private shouldExit;
-    private clearToast;
-    private clearContainer;
-    private removeToast;
+    /**
+     * Get merged options
+     */
     private getOptions;
-    private createCloseBtn;
+    /**
+     * Get default options
+     */
     private getDefaults;
+    /**
+     * Publish toast response to subscriber
+     */
     private publish;
-    private stickAround;
-    private delayedHideToast;
-    private isVisible;
-}
-declare global {
-    interface Window {
-        toastr: typeof Toastr;
-    }
 }
 export default Toastr;
