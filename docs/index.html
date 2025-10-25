@@ -178,10 +178,10 @@
             <h2>Quick Demo</h2>
             <p>Try the different toast types with default settings:</p>
             <div class="quick-demo">
-                <button onclick="showSuccess()">✓ Success</button>
-                <button onclick="showInfo()" class="secondary">ℹ Info</button>
-                <button onclick="showWarning()" class="contrast">⚠ Warning</button>
-                <button onclick="showError()" class="secondary">✗ Error</button>
+                <button onclick="showSuccess()" style="--pico-background-color: var(--toast-success-color)">✓ Success</button>
+                <button onclick="showInfo()" class="secondary" style="--pico-background-color: var(--toast-info-color)">ℹ Info</button>
+                <button onclick="showWarning()" class="contrast" style="--pico-background-color: var(--toast-warning-color)">⚠ Warning</button>
+                <button onclick="showError()" class="secondary" style="--pico-background-color: var(--toast-error-color)">✗ Error</button>
             </div>
         </section>
 
@@ -225,7 +225,7 @@
                     </select>
                 </div>
 
-                <div class="form-row">
+                <div class="form-row" style="align-items: end;">
                     <div class="form-group">
                         <label for="timeOut">Timeout (ms)</label>
                         <input type="number" id="timeOut" value="5000" min="0" step="1000">
