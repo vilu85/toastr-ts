@@ -54,7 +54,7 @@
 		"not dead"
 	],
 	"dependencies": {
-		"@babel/core": "^7.28.4",
+		"@babel/core": "^7.28.5",
 		"@babel/runtime": "^7.28.4",
 		"autoprefixer": "^10.4.21",
 		"browserslist": "^4.27.0",
