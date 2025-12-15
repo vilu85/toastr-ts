@@ -62,7 +62,7 @@
 		"css-minimizer-webpack-plugin": "^7.0.2",
 		"mini-css-extract-plugin": "^2.9.4",
 		"postcss-loader": "^8.2.0",
-		"sass": "^1.94.2",
+		"sass": "^1.96.0",
 		"sass-loader": "^16.0.6",
 		"terser-webpack-plugin": "^5.3.14",
 		"ts-loader": "^9.5.4",
