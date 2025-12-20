@@ -89,6 +89,6 @@
 		"rimraf": "^6.1.2",
 		"style-loader": "^4.0.0",
 		"ts-jest": "^29.4.5",
-		"typescript-eslint": "^8.48.0"
+		"typescript-eslint": "^8.50.0"
 	}
 }
