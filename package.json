@@ -55,7 +55,7 @@
 	],
 	"dependencies": {
 		"@babel/core": "^7.28.6",
-		"@babel/runtime": "^7.28.4",
+		"@babel/runtime": "^7.28.6",
 		"autoprefixer": "^10.4.23",
 		"browserslist": "^4.28.0",
 		"css-loader": "^7.1.2",
