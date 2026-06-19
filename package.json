@@ -55,7 +55,7 @@
 	],
 	"dependencies": {
 		"@babel/core": "^7.29.7",
-		"@babel/runtime": "^7.29.7",
+		"@babel/runtime": "^8.0.0",
 		"autoprefixer": "^10.4.27",
 		"browserslist": "^4.28.2",
 		"css-loader": "^7.1.4",
@@ -90,5 +90,8 @@
 		"style-loader": "^4.0.0",
 		"ts-jest": "^29.4.11",
 		"typescript-eslint": "^8.59.4"
+	},
+	"overrides": {
+		"js-yaml": ">=4.2.0"
 	}
 }
