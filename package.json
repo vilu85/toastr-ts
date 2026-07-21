@@ -57,7 +57,7 @@
 		"@babel/core": "^7.29.7",
 		"@babel/runtime": "^8.0.0",
 		"autoprefixer": "^10.5.4",
-		"browserslist": "^4.28.2",
+		"browserslist": "^4.28.7",
 		"css-loader": "^7.1.4",
 		"css-minimizer-webpack-plugin": "^8.0.0",
 		"mini-css-extract-plugin": "^2.10.0",
