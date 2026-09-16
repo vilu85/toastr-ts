@@ -1,6 +1,6 @@
 {
 	"name": "toastr-ts",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "TypeScript implementation of Toastr JavaScript library",
 	"main": "./dist/toastr.umd.js",
 	"module": "./dist/toastr.js",
