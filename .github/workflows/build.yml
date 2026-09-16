@@ -14,7 +14,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-        - uses: actions/checkout@v4
+        - uses: actions/checkout@v6
         - name: Get version number
           id: get-version-number
           run: |
@@ -24,9 +24,9 @@ jobs:
            echo "VERSION=$package_version" >> "$GITHUB_OUTPUT"
            echo "UNDERSCORE_VERSION=${package_version//./_}" >> "$GITHUB_OUTPUT"
 
-        - uses: actions/setup-node@v4
+        - uses: actions/setup-node@v6
           with:
-            node-version: 22
+            node-version: 24
             cache: 'npm'
 
         - run: npm install
@@ -42,7 +42,7 @@ jobs:
 
         - name: Create Release
           id: create_release
-          uses: softprops/action-gh-release@v2.2.1
+          uses: softprops/action-gh-release@v3
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             VERSION: ${{ steps.get-version-number.outputs.VERSION }}
